@@ -10,31 +10,35 @@
 #define dirPin 12
 
 short mode = 0;
-float siderealRate = 7.501964;
-float fastSpeed = 4000;
+float raSiderealRate = 7.501964;
+float raTrackingSpeed = raSiderealRate;
+float fastSpeed = 2000;
+unsigned long previousMillis = 0;
+const long interval = 100;
 
 AccelStepper STEPPER = AccelStepper(1, stepPin, dirPin);
 Adafruit_SSD1306 OLED = Adafruit_SSD1306(128, 64, &Wire);
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(57600, SERIAL_8N1);
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
   pinMode(forwardPin, INPUT_PULLUP);
   pinMode(rewindPin, INPUT_PULLUP);
   STEPPER.setPinsInverted(false);
   STEPPER.setMaxSpeed(8000);
-  STEPPER.setSpeed(siderealRate);
+  STEPPER.setSpeed(raTrackingSpeed);
   OLED.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   OLED.setTextColor(SSD1306_WHITE);
   OLED.clearDisplay();
   OLED.setCursor(0, 0);
-  Serial.println("RDY");
+  Serial.setTimeout(5);
+  Serial.println("INITIALIZED#");
 }
 
 void loop() {
 
-
+  unsigned long currentMillis = millis();
 
   uint8_t rewindPin_mask = digitalPinToBitMask(rewindPin);
   volatile uint8_t *rewindPin_port = portInputRegister(digitalPinToPort(rewindPin));
@@ -43,11 +47,9 @@ void loop() {
   uint8_t forwardPin_mask = digitalPinToBitMask(forwardPin);
   volatile uint8_t *forwardPin_port = portInputRegister(digitalPinToPort(forwardPin));
   uint8_t forwardPinState = (*forwardPin_port & forwardPin_mask) != 0;
-  
+ 
   if (!rewindPinState) {
-    
      if (mode != 2) {
-      digitalWrite(LED_BUILTIN, HIGH);
       OLED.clearDisplay();
       OLED.setCursor(40, 6);
       OLED.setTextSize(4);
@@ -58,16 +60,12 @@ void loop() {
       OLED.println("REWIND");
       OLED.display();
       STEPPER.setPinsInverted(false);
-      STEPPER.setSpeed(fastSpeed);
-      Serial.println("REWIND");
+      raTrackingSpeed = fastSpeed;
     }
     mode = 2;
     STEPPER.runSpeed();
-
   } else if (!forwardPinState) {
-
     if (mode != 3) {
-      digitalWrite(LED_BUILTIN, HIGH);
       OLED.clearDisplay();
       OLED.setCursor(40, 6);
       OLED.setTextSize(4);
@@ -78,16 +76,12 @@ void loop() {
       OLED.println("FORWARD");
       OLED.display();
       STEPPER.setPinsInverted(true);
-      STEPPER.setSpeed(fastSpeed);
-      Serial.println("FORWARD");
+      raTrackingSpeed = fastSpeed;
     }
     mode = 3;
     STEPPER.runSpeed();
-
   } else {
-
     if (mode != 1) {
-      digitalWrite(LED_BUILTIN, LOW);
       OLED.clearDisplay();
       OLED.setCursor(58, 6);
       OLED.setTextSize(3);
@@ -98,14 +92,60 @@ void loop() {
       OLED.setCursor(42, 42);
       OLED.println("TRACKING");
       OLED.display();
-      STEPPER.setPinsInverted(true);
-      STEPPER.setSpeed(siderealRate);
-      Serial.println("SIDEREAL");
     }
     mode = 1;
+    
+
+    if(Serial.available() > 0) {
+      String opcode = Serial.readStringUntil('#');
+      boolean validOpcode=true;
+      if(opcode=="CONNECT") {
+        STEPPER.setPinsInverted(true);
+        raTrackingSpeed = raSiderealRate;
+        digitalWrite(LED_BUILTIN, LOW);
+      } else if (opcode=="DISCONNECT"){
+        STEPPER.setPinsInverted(true);
+        raTrackingSpeed = raSiderealRate;
+        digitalWrite(LED_BUILTIN, LOW);
+      } else if(opcode=="RA0"){
+        STEPPER.setPinsInverted(true);
+        raTrackingSpeed = raSiderealRate;
+      } else if(opcode=="RA+"){
+        STEPPER.setPinsInverted(true);
+        raTrackingSpeed = raSiderealRate * 8;
+        digitalWrite(LED_BUILTIN, HIGH);
+      } else if(opcode=="RA-"){
+        STEPPER.setPinsInverted(false);
+        raTrackingSpeed = raSiderealRate * 8;
+        digitalWrite(LED_BUILTIN, HIGH);
+      } else if(opcode=="DEC0"){
+        // TO BE IMPLEMENTED
+      } else if(opcode=="DEC+"){
+        // TO BE IMPLEMENTED
+      } else if(opcode=="DEC-"){
+        // TO BE IMPLEMENTED
+      } else {
+        validOpcode = false;
+      }
+      if(validOpcode){
+        Serial.println("OK#");
+      }
+    } else {
+      if (raTrackingSpeed != fastSpeed) {
+        if(currentMillis - previousMillis >= interval) {
+          previousMillis = currentMillis;
+          raTrackingSpeed = raSiderealRate;
+          STEPPER.setPinsInverted(true);
+          digitalWrite(LED_BUILTIN, LOW);
+        }
+      } else {
+        raTrackingSpeed = raSiderealRate;
+        STEPPER.setPinsInverted(true);
+        digitalWrite(LED_BUILTIN, LOW);
+      }
+    }
 
   }
-
+  STEPPER.setSpeed(raTrackingSpeed);
   STEPPER.runSpeed();
-
 }
