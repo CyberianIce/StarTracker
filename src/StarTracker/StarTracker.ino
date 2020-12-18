@@ -48,7 +48,7 @@ void loop() {
   volatile uint8_t *forwardPin_port = portInputRegister(digitalPinToPort(forwardPin));
   uint8_t forwardPinState = (*forwardPin_port & forwardPin_mask) != 0;
  
-  if (!rewindPinState) {
+  if(!rewindPinState) {
      if (mode != 2) {
       OLED.clearDisplay();
       OLED.setCursor(40, 6);
@@ -64,7 +64,7 @@ void loop() {
     }
     mode = 2;
     STEPPER.runSpeed();
-  } else if (!forwardPinState) {
+  } else if(!forwardPinState) {
     if (mode != 3) {
       OLED.clearDisplay();
       OLED.setCursor(40, 6);
@@ -81,7 +81,7 @@ void loop() {
     mode = 3;
     STEPPER.runSpeed();
   } else {
-    if (mode != 1) {
+    if(mode != 1) {
       OLED.clearDisplay();
       OLED.setCursor(58, 6);
       OLED.setTextSize(3);
@@ -98,36 +98,32 @@ void loop() {
 
     if(Serial.available() > 0) {
       String opcode = Serial.readStringUntil('#');
-      boolean validOpcode=true;
+      boolean validOpcode = true;
       if(opcode=="CONNECT") {
-        STEPPER.setPinsInverted(true);
         raTrackingSpeed = raSiderealRate;
         digitalWrite(LED_BUILTIN, LOW);
-      } else if (opcode=="DISCONNECT"){
-        STEPPER.setPinsInverted(true);
+      } else if (opcode=="DISCONNECT") {
         raTrackingSpeed = raSiderealRate;
         digitalWrite(LED_BUILTIN, LOW);
-      } else if(opcode=="RA0"){
+      } else if(opcode=="RA0") {
         STEPPER.setPinsInverted(true);
         raTrackingSpeed = raSiderealRate;
-      } else if(opcode=="RA+"){
-        STEPPER.setPinsInverted(true);
+      } else if(opcode=="RA+") {
         raTrackingSpeed = raSiderealRate * 1.5;
         digitalWrite(LED_BUILTIN, HIGH);
-      } else if(opcode=="RA-"){
-        STEPPER.setPinsInverted(true);
+      } else if(opcode=="RA-") {
         raTrackingSpeed = raSiderealRate * 0.5;
         digitalWrite(LED_BUILTIN, HIGH);
-      } else if(opcode=="DEC0"){
+      } else if(opcode=="DEC0") {
         // TO BE IMPLEMENTED
-      } else if(opcode=="DEC+"){
+      } else if(opcode=="DEC+") {
         // TO BE IMPLEMENTED
-      } else if(opcode=="DEC-"){
+      } else if(opcode=="DEC-") {
         // TO BE IMPLEMENTED
       } else {
         validOpcode = false;
       }
-      if(validOpcode){
+      if(validOpcode) {
         Serial.println("OK#");
       }
     } else {
