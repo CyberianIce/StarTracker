@@ -112,11 +112,11 @@ void loop() {
         raTrackingSpeed = raSiderealRate;
       } else if(opcode=="RA+"){
         STEPPER.setPinsInverted(true);
-        raTrackingSpeed = raSiderealRate * 8;
+        raTrackingSpeed = raSiderealRate * 1.5;
         digitalWrite(LED_BUILTIN, HIGH);
       } else if(opcode=="RA-"){
-        STEPPER.setPinsInverted(false);
-        raTrackingSpeed = raSiderealRate * 8;
+        STEPPER.setPinsInverted(true);
+        raTrackingSpeed = raSiderealRate * 0.5;
         digitalWrite(LED_BUILTIN, HIGH);
       } else if(opcode=="DEC0"){
         // TO BE IMPLEMENTED
