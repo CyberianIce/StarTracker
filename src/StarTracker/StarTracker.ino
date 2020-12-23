@@ -4,13 +4,15 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
+#define tonePin 2
 #define rewindPin 9
 #define forwardPin 10
 #define stepPin 11
 #define dirPin 12
 
 short mode = 0;
-float raSiderealRate = 7.501964;
+// float raSiderealRate = 7.501964;
+float raSiderealRate = 6.610641;
 float raTrackingSpeed = raSiderealRate;
 float fastSpeed = 2000;
 unsigned long previousMillis = 0;
@@ -31,8 +33,19 @@ void setup() {
   OLED.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   OLED.setTextColor(SSD1306_WHITE);
   OLED.clearDisplay();
-  OLED.setCursor(0, 0);
+  OLED.setCursor(42, 28);
+  OLED.println("Welcome");
+  OLED.display();
   Serial.setTimeout(5);
+  tone(tonePin, 960);
+  delay(350);
+  tone(tonePin, 1260);
+  delay(400);
+  tone(tonePin, 1680);
+  delay(500);
+  noTone(tonePin);
+  OLED.clearDisplay();
+  OLED.setCursor(0, 0);
   Serial.println("INITIALIZED#");
 }
 
