@@ -13,22 +13,18 @@
 String firmware = "1.0.0";
 short mode = 0;
 float raSiderealRate = 6.610641;
-float raTrackingSpeed = raSiderealRate;
 float fastSpeed = 2000;
-unsigned long previousMillis = 0;
-const long interval = 100;
-AccelStepper STEPPER = AccelStepper(1, stepPin, dirPin);
+AccelStepper RA = AccelStepper(1, stepPin, dirPin);
 Adafruit_SSD1306 OLED = Adafruit_SSD1306(128, 64, &Wire);
 
 void setup() {
-  Serial.begin(57600, SERIAL_8N1);
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
   pinMode(forwardPin, INPUT_PULLUP);
   pinMode(rewindPin, INPUT_PULLUP);
-  STEPPER.setPinsInverted(false);
-  STEPPER.setMaxSpeed(8000);
-  STEPPER.setSpeed(raTrackingSpeed);
+  RA.setPinsInverted(false);
+  RA.setMaxSpeed(8000);
+  RA.setSpeed(raSiderealRate);
   OLED.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   OLED.setTextColor(SSD1306_WHITE);
   OLED.clearDisplay();
@@ -36,15 +32,12 @@ void setup() {
   OLED.print("SiderealTrack ");
   OLED.println(firmware);
   OLED.display();
-  Serial.setTimeout(5);
-  introMellody();
   OLED.clearDisplay();
   OLED.setCursor(0, 0);
-  Serial.println("INITIALIZED#");
+  introMellody();
 }
 
 void loop() {
-  unsigned long currentMillis = millis();
 
   uint8_t rewindPin_mask = digitalPinToBitMask(rewindPin);
   volatile uint8_t *rewindPin_port = portInputRegister(digitalPinToPort(rewindPin));
@@ -65,11 +58,10 @@ void loop() {
       OLED.setTextSize(1);
       OLED.println("REWIND");
       OLED.display();
-      STEPPER.setPinsInverted(false);
-      raTrackingSpeed = fastSpeed;
+      RA.setPinsInverted(false);
+      RA.setSpeed(fastSpeed);
     }
     mode = 2;
-    STEPPER.runSpeed();
   } else if(!forwardPinState) {
     if (mode != 3) {
       OLED.clearDisplay();
@@ -81,11 +73,10 @@ void loop() {
       OLED.setTextSize(1);
       OLED.println("FORWARD");
       OLED.display();
-      STEPPER.setPinsInverted(true);
-      raTrackingSpeed = fastSpeed;
+      RA.setPinsInverted(true);
+      RA.setSpeed(fastSpeed);
     }
     mode = 3;
-    STEPPER.runSpeed();
   } else {
     if(mode != 1) {
       OLED.clearDisplay();
@@ -98,65 +89,19 @@ void loop() {
       OLED.setCursor(42, 42);
       OLED.println("TRACKING");
       OLED.display();
+      RA.setPinsInverted(true);
+      RA.setSpeed(raSiderealRate);
     }
     mode = 1;
-    
-
-    if(Serial.available() > 0) {
-      String opcode = Serial.readStringUntil('#');
-      boolean validOpcode = true;
-      if(opcode=="CONNECT") {
-        raTrackingSpeed = raSiderealRate;
-        digitalWrite(LED_BUILTIN, LOW);
-      } else if (opcode=="DISCONNECT") {
-        raTrackingSpeed = raSiderealRate;
-        digitalWrite(LED_BUILTIN, LOW);
-      } else if(opcode=="RA0") {
-        STEPPER.setPinsInverted(true);
-        raTrackingSpeed = raSiderealRate;
-      } else if(opcode=="RA+") {
-        raTrackingSpeed = raSiderealRate * 1.5;
-        digitalWrite(LED_BUILTIN, HIGH);
-      } else if(opcode=="RA-") {
-        raTrackingSpeed = raSiderealRate * 0.5;
-        digitalWrite(LED_BUILTIN, HIGH);
-      } else if(opcode=="DEC0") {
-        // TO BE IMPLEMENTED
-      } else if(opcode=="DEC+") {
-        // TO BE IMPLEMENTED
-      } else if(opcode=="DEC-") {
-        // TO BE IMPLEMENTED
-      } else {
-        validOpcode = false;
-      }
-      if(validOpcode) {
-        Serial.println("OK#");
-      }
-    } else {
-      if (raTrackingSpeed != fastSpeed) {
-        if(currentMillis - previousMillis >= interval) {
-          previousMillis = currentMillis;
-          raTrackingSpeed = raSiderealRate;
-          STEPPER.setPinsInverted(true);
-          digitalWrite(LED_BUILTIN, LOW);
-        }
-      } else {
-        raTrackingSpeed = raSiderealRate;
-        STEPPER.setPinsInverted(true);
-        digitalWrite(LED_BUILTIN, LOW);
-      }
-    }
-
   }
-  STEPPER.setSpeed(raTrackingSpeed);
-  STEPPER.runSpeed();
+  RA.runSpeed();
 }
 
 void beep(int note, int duration) {
   tone(tonePin, note, duration);
   delay(duration);
   noTone(tonePin);
-  delay(50);
+  delay(25);
 }
  
 void introMellody() {
@@ -169,7 +114,7 @@ void introMellody() {
   beep(349, 350);
   beep(523, 150);
   beep(440, 650);
-  delay(500);
+  delay(300);
   beep(659, 500);
   beep(659, 500);
   beep(659, 500);  
@@ -179,5 +124,4 @@ void introMellody() {
   beep(349, 350);
   beep(523, 150);
   beep(440, 650);
-  delay(500);
 }
