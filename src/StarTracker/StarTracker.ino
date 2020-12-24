@@ -10,14 +10,13 @@
 #define stepPin 11
 #define dirPin 12
 
+String firmware = "1.0.0";
 short mode = 0;
-// float raSiderealRate = 7.501964;
 float raSiderealRate = 6.610641;
 float raTrackingSpeed = raSiderealRate;
 float fastSpeed = 2000;
 unsigned long previousMillis = 0;
 const long interval = 100;
-
 AccelStepper STEPPER = AccelStepper(1, stepPin, dirPin);
 Adafruit_SSD1306 OLED = Adafruit_SSD1306(128, 64, &Wire);
 
@@ -33,24 +32,18 @@ void setup() {
   OLED.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   OLED.setTextColor(SSD1306_WHITE);
   OLED.clearDisplay();
-  OLED.setCursor(42, 28);
-  OLED.println("Welcome");
+  OLED.setCursor(8, 28);
+  OLED.print("SiderealTrack ");
+  OLED.println(firmware);
   OLED.display();
   Serial.setTimeout(5);
-  tone(tonePin, 960);
-  delay(350);
-  tone(tonePin, 1260);
-  delay(400);
-  tone(tonePin, 1680);
-  delay(500);
-  noTone(tonePin);
+  introMellody();
   OLED.clearDisplay();
   OLED.setCursor(0, 0);
   Serial.println("INITIALIZED#");
 }
 
 void loop() {
-
   unsigned long currentMillis = millis();
 
   uint8_t rewindPin_mask = digitalPinToBitMask(rewindPin);
@@ -157,4 +150,34 @@ void loop() {
   }
   STEPPER.setSpeed(raTrackingSpeed);
   STEPPER.runSpeed();
+}
+
+void beep(int note, int duration) {
+  tone(tonePin, note, duration);
+  delay(duration);
+  noTone(tonePin);
+  delay(50);
+}
+ 
+void introMellody() {
+  beep(440, 500);
+  beep(440, 500);    
+  beep(440, 500);
+  beep(349, 350);
+  beep(523, 150);  
+  beep(440, 500);
+  beep(349, 350);
+  beep(523, 150);
+  beep(440, 650);
+  delay(500);
+  beep(659, 500);
+  beep(659, 500);
+  beep(659, 500);  
+  beep(698, 350);
+  beep(523, 150);
+  beep(415, 500);
+  beep(349, 350);
+  beep(523, 150);
+  beep(440, 650);
+  delay(500);
 }
