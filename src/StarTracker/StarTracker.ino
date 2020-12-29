@@ -58,7 +58,7 @@ void loop() {
       OLED.setTextSize(1);
       OLED.println("REWIND");
       OLED.display();
-      RA.setPinsInverted(false);
+      RA.setPinsInverted(true);
       RA.setSpeed(fastSpeed);
     }
     mode = 2;
@@ -73,7 +73,7 @@ void loop() {
       OLED.setTextSize(1);
       OLED.println("FORWARD");
       OLED.display();
-      RA.setPinsInverted(true);
+      RA.setPinsInverted(false);
       RA.setSpeed(fastSpeed);
     }
     mode = 3;
@@ -89,7 +89,7 @@ void loop() {
       OLED.setCursor(42, 42);
       OLED.println("TRACKING");
       OLED.display();
-      RA.setPinsInverted(true);
+      RA.setPinsInverted(false);
       RA.setSpeed(raSiderealRate);
     }
     mode = 1;
@@ -103,7 +103,7 @@ void beep(int note, int duration) {
   noTone(tonePin);
   delay(25);
 }
- 
+
 void introMellody() {
   beep(440, 500);
   beep(440, 500);    
