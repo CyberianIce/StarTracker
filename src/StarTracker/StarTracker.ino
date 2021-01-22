@@ -27,9 +27,6 @@ void setup() {
   }
   Serial.begin(57600);
   Serial.setTimeout(10);
-  Serial.print("Tracking rate: ");
-  Serial.print(trackSpeed, 6);
-  Serial.println(" Hz");
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
   RA.setPinsInverted(false);
@@ -58,24 +55,19 @@ void loop() {
     if(newRate > 0 && newRate <=2000) {
       trackSpeed = newRate;
       EEPROM.put(0, trackSpeed);
-      beep(698, 50);
-      Serial.print("Tracking rate: ");
-      Serial.print(trackSpeed, 6);
-      Serial.println(" Hz");
     } else if(command == "RST#") {
       EEPROM.put(0, raSiderealRate);
       trackSpeed = raSiderealRate;
       beep(440, 100);
       beep(698, 120);
       beep(1000, 140);
-      Serial.print("Tracking rate: ");
-      Serial.print(trackSpeed, 6);
-      Serial.println(" Hz");
     } else if(command == "+#") {
+      beep(2200, 100);
       RA.setCurrentPosition(0);
       RA.setSpeed(1000);
       RA.runToNewPosition(1582);
     } else if(command == "-#") {
+      beep(2200, 100);
       RA.setCurrentPosition(0);
       RA.setSpeed(1000);
       RA.runToNewPosition(-1582);
@@ -95,9 +87,12 @@ void loop() {
       OLED.display();
       RA.setPinsInverted(false);
       RA.setSpeed(fastSpeed);
-      Serial.print("Rewinding rate: ");
+      Serial.print(F("Rewinding rate: "));
       Serial.print(fastSpeed);
-      Serial.println(" Hz");
+      Serial.println(F(" Hz"));
+      beep(1400, 100);
+      beep(1200, 100);
+      beep(1000, 100);
     }
     mode = 2;
   } else if (command == "FWD#") {
@@ -113,9 +108,12 @@ void loop() {
       OLED.display();
       RA.setPinsInverted(true);
       RA.setSpeed(fastSpeed);
-      Serial.print("Forwarding rate: ");
+      Serial.print(F("Forwarding rate: "));
       Serial.print(fastSpeed);
-      Serial.println(" Hz");
+      Serial.println(F(" Hz"));
+      beep(1000, 100);
+      beep(1200, 100);
+      beep(1400, 100);
     }
     mode = 3;
   } else {
@@ -132,6 +130,10 @@ void loop() {
       OLED.setCursor(42, 44);
       OLED.println(trackSpeed, 6);
       OLED.display();
+      Serial.print(F("Tracking rate: "));
+      Serial.print(trackSpeed, 6);
+      Serial.println(F(" Hz"));
+      beep(2000, 100);
       RA.setPinsInverted(true);
       RA.setSpeed(trackSpeed);
     }
