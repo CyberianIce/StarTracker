@@ -11,7 +11,10 @@
 
 String firmware = "1.0.0";
 short mode = 0;
-float raSiderealRate = 6.610641;
+float raSiderealRate = 6.610642;
+float raKingRate = 6.608810;
+float raSolarRate = 6.592593;
+float raLunarRate = 6.454148;
 float trackSpeed = raSiderealRate;
 float fastSpeed = 2000;
 String command = "";
